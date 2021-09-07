@@ -6,11 +6,19 @@ import pandas as pd
 
 class LogisticRegression:
     
-    def __init__(self):
-        # NOTE: Feel free add any hyperparameters 
-        # (with defaults) as you see fit
-        pass
-        
+    def __init__(self, lr=5e-5, n_iter=10000, intercept=True, distance_input=False):
+        self._lr = lr
+        self._n_iter = n_iter
+        self._intercept = intercept
+        self._distance_input = distance_input
+        self._theta = None
+
+    def _transform_input_to_distance(self, X):
+        return np.sum(X**2, axis=1).values.reshape((X.shape[0], 1))
+
+    def _add_intercept(self, X):
+        return np.hstack((np.ones((X.shape[0], 1)), X))
+
     def fit(self, X, y):
         """
         Estimates parameters for the classifier
@@ -21,8 +29,22 @@ class LogisticRegression:
             y (array<m>): a vector of floats containing 
                 m binary 0.0/1.0 labels
         """
-        # TODO: Implement
-        raise NotImplemented()
+        if self._distance_input:
+            X = self._transform_input_to_distance(X)
+
+        if self._intercept:
+            X = self._add_intercept(X)
+
+        if self._theta is None or (self._theta and self._theta.shape != X.shape[1]):
+            self._theta = np.zeros(X.shape[1]) # Initialize parameters
+
+        for n in range(self._n_iter):
+            h = sigmoid(np.dot(X, self._theta))
+            dW = np.dot(X.T, (y-h))
+            self._theta += self._lr * dW
+            if (n % (self._n_iter/10) == 0): # Print every 10% of total training iterations
+                print("Train Accuracy: ", binary_accuracy(y, h))  
+                print("Train Loss: ", binary_cross_entropy(y, h))   
     
     def predict(self, X):
         """
@@ -38,8 +60,14 @@ class LogisticRegression:
             A length m array of floats in the range [0, 1]
             with probability-like predictions
         """
-        # TODO: Implement
-        raise NotImplemented()
+
+        if self._distance_input:
+            X = self._transform_input_to_distance(X)
+
+        if self._intercept:
+            X = self._add_intercept(X)
+
+        return sigmoid(np.dot(X, self._theta))
         
 
         
