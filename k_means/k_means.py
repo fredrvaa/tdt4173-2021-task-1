@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import pandas as pd 
 # IMPORTANT: DO NOT USE ANY OTHER 3RD PARTY PACKAGES
 # (math, random, collections, functools, etc. are perfectly fine)
@@ -6,11 +6,11 @@ import pandas as pd
 
 class KMeans:
     
-    def __init__(self):
-        # NOTE: Feel free add any hyperparameters 
-        # (with defaults) as you see fit
-        pass
-        
+    def __init__(self, n_clusters = 2, n_iter = 100):
+        self._n_clusters = n_clusters
+        self._n_iter = n_iter
+        self._centroids = None
+
     def fit(self, X):
         """
         Estimates parameters for the classifier
@@ -19,9 +19,33 @@ class KMeans:
             X (array<m,n>): a matrix of floats with
                 m rows (#samples) and n columns (#features)
         """
-        # TODO: Implement
-        raise NotImplementedError()
-    
+        X = np.array(X)
+
+        # Random initialization of centroids
+        centroids = X[np.random.choice(X.shape[0], self._n_clusters, replace=False), :]
+
+        # Initial cluster assignment
+        cluster_assignment = np.zeros(X.shape[0])
+
+        converged = False
+        for x in range(self._n_iter):
+            ced = cross_euclidean_distance(X, centroids)
+            new_cluster_assignment = np.argmin(ced, axis=1)
+
+            if np.array_equal(new_cluster_assignment, cluster_assignment):
+                converged = True
+                break
+            
+            cluster_assignment = new_cluster_assignment
+            for n in range(self._n_clusters):
+                cluster = X[cluster_assignment == n]
+                centroids[n] = np.mean(cluster, axis=0)
+
+        print(f"Coverged in {x} iterations" if converged else f"Did not converge in {self._n_iter} iterations")
+
+        self._centroids = centroids
+            
+
     def predict(self, X):
         """
         Generates predictions
@@ -38,8 +62,13 @@ class KMeans:
             there are 3 clusters, then a possible assignment
             could be: array([2, 0, 0, 1, 2, 1, 1, 0, 2, 2])
         """
-        # TODO: Implement 
-        raise NotImplementedError()
+        ced = cross_euclidean_distance(np.array(X), self._centroids)
+        #print("X: ", X)
+        #print("Centroids: ", self._centroids)
+        #print("CED: ", ced)
+        #print("Assignments: ", np.argmin(ced, axis=1))
+        return np.argmin(ced, axis=1)
+        
     
     def get_centroids(self):
         """
@@ -56,8 +85,7 @@ class KMeans:
             [xm_1, xm_2, ..., xm_n]
         ])
         """
-        # TODO: Implement 
-        raise NotImplementedError()
+        return self._centroids
     
     
     
