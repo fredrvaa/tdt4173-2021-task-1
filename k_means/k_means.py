@@ -6,7 +6,7 @@ import pandas as pd
 
 class KMeans:
     
-    def __init__(self, n_clusters = 2, n_iter = 100):
+    def __init__(self, n_clusters=2, n_iter=100):
         self._n_clusters = n_clusters
         self._n_iter = n_iter
         self._centroids = None
@@ -63,10 +63,6 @@ class KMeans:
             could be: array([2, 0, 0, 1, 2, 1, 1, 0, 2, 2])
         """
         ced = cross_euclidean_distance(np.array(X), self._centroids)
-        #print("X: ", X)
-        #print("Centroids: ", self._centroids)
-        #print("CED: ", ced)
-        #print("Assignments: ", np.argmin(ced, axis=1))
         return np.argmin(ced, axis=1)
         
     
@@ -91,7 +87,6 @@ class KMeans:
     
     
 # --- Some utility functions 
-
 
 def euclidean_distortion(X, z):
     """
