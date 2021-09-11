@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.core.numeric import Inf
 import pandas as pd 
 # IMPORTANT: DO NOT USE ANY OTHER 3RD PARTY PACKAGES
 # (math, random, collections, functools, etc. are perfectly fine)
@@ -6,10 +7,12 @@ import pandas as pd
 
 class KMeans:
     
-    def __init__(self, n_clusters=2, n_iter=100):
+    def __init__(self, n_clusters=2, n_iter=100, max_distortion=9, max_restarts=1):
         self._n_clusters = n_clusters
         self._n_iter = n_iter
         self._centroids = None
+        self._max_distortion = max_distortion
+        self._max_restarts = max_restarts
 
     def fit(self, X):
         """
@@ -21,28 +24,40 @@ class KMeans:
         """
         X = np.array(X)
 
-        # Random initialization of centroids
-        centroids = X[np.random.choice(X.shape[0], self._n_clusters, replace=False), :]
-
-        # Initial cluster assignment
-        cluster_assignment = np.zeros(X.shape[0])
-
+        restart_counter = 0
         converged = False
-        for x in range(self._n_iter):
-            ced = cross_euclidean_distance(X, centroids)
-            new_cluster_assignment = np.argmin(ced, axis=1)
+        while restart_counter < self._max_restarts:
+            # Random initialization of centroids
+            centroids = X[np.random.choice(X.shape[0], self._n_clusters, replace=False), :]
 
-            if np.array_equal(new_cluster_assignment, cluster_assignment):
+            # Initial cluster assignment
+            cluster_assignment = np.zeros(X.shape[0])
+
+            for _ in range(self._n_iter):
+                ced = cross_euclidean_distance(X, centroids)
+                new_cluster_assignment = np.argmin(ced, axis=1)
+
+                if np.array_equal(new_cluster_assignment, cluster_assignment):
+                    break
+                
+                cluster_assignment = new_cluster_assignment
+                for n in range(self._n_clusters):
+                    cluster = X[cluster_assignment == n]
+                    centroids[n] = np.mean(cluster, axis=0)
+
+            distortion = euclidean_distortion(X, cluster_assignment)
+            if distortion < self._max_distortion:
                 converged = True
                 break
-            
-            cluster_assignment = new_cluster_assignment
-            for n in range(self._n_clusters):
-                cluster = X[cluster_assignment == n]
-                centroids[n] = np.mean(cluster, axis=0)
+            else:
+                restart_counter += 1
+                if restart_counter >= self._max_restarts:
+                    print(f"Did not achieve low enough distortion. Retrying with different centroid initialization.")
 
-        print(f"Coverged in {x} iterations" if converged else f"Did not converge in {self._n_iter} iterations")
-
+        if converged:
+            print(f"Converged after {restart_counter} restarts") 
+        else:
+            print(f"Did not converge after {restart_counter} restarts")
         self._centroids = centroids
             
 
