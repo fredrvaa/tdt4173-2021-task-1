@@ -6,15 +6,11 @@ import pandas as pd
 
 class LogisticRegression:
     
-    def __init__(self, lr=5e-5, n_iter=10000, intercept=True, distance_input=False):
+    def __init__(self, lr=5e-5, n_iter=100000, intercept=True):
         self._lr = lr
         self._n_iter = n_iter
         self._intercept = intercept
-        self._distance_input = distance_input
         self._theta = None
-
-    def _transform_input_to_distance(self, X):
-        return np.sum(X**2, axis=1).values.reshape((X.shape[0], 1))
 
     def _add_intercept(self, X):
         return np.hstack((np.ones((X.shape[0], 1)), X))
@@ -29,9 +25,6 @@ class LogisticRegression:
             y (array<m>): a vector of floats containing 
                 m binary 0.0/1.0 labels
         """
-        if self._distance_input:
-            X = self._transform_input_to_distance(X)
-
         if self._intercept:
             X = self._add_intercept(X)
 
@@ -60,10 +53,6 @@ class LogisticRegression:
             A length m array of floats in the range [0, 1]
             with probability-like predictions
         """
-
-        if self._distance_input:
-            X = self._transform_input_to_distance(X)
-
         if self._intercept:
             X = self._add_intercept(X)
 
